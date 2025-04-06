@@ -1,66 +1,60 @@
-[English Version](README.en.md) | Versão em Inglês
+[English Version](README.en.md) | [简体中文版](README.zh-CN.md) | Versão em Inglês | Versão em Chinês Simplificado
 
 ---
 
 # AGI Companion Browser
 
-**Controle a web visualmente com o poder da IA Gemini! (Outros modelos multimodais serão adicionados em updates futuros, i.e Qwen, DeepSeek, Llama, etc.)**
+**Um Navegador Agente de IA para Android: Controle a web visualmente!**
 
-O AGI Companion Browser é um navegador experimental para Android que funciona como um **Agente de IA**. Ele permite que uma inteligência artificial (Google Gemini) compreenda e interaja com páginas web baseadas em capturas de tela e comandos direcionados a uma grade visual sobreposta.
+O AGI Companion Browser transforma a navegação web em uma experiência interativa controlada por IA. Ele funciona como um **Agente de IA** que permite a modelos multimodais avançados compreenderem páginas web através de capturas de tela e executarem ações precisas usando uma grade visual sobreposta.
+
+Atualmente integrado com **Google Gemini**, com planos para suportar outros modelos poderosos como **Qwen**, **DeepSeek** e **Llama** em futuras atualizações!
 
 ## Recursos Principais
 
-*   **Agente de IA Integrado:** Controle o navegador usando prompts em linguagem natural via Gemini AI.
-*   **Compreensão Visual:** A IA usa capturas de tela (com e sem grade) para "ver" e entender o estado da página web.
-*   **Ações Baseadas em Grade:** Execute ações como `CLICK` (clicar), `TYPE` (digitar) e `ENTER` em elementos específicos usando coordenadas da grade (ex: `R5C8`).
-*   **Sequências Multi-Turno:** Realize tarefas complexas através de múltiplas interações, com a IA mantendo o contexto via notas internas e checklists (`NOTE ::`).
-*   **Processamento de Comandos:** Interpreta comandos específicos da IA para navegação, gerenciamento de abas, digitação, cliques e respostas finais.
-*   **Navegador Completo:** Inclui abas múltiplas, controles de navegação, modo Desktop/Mobile, downloads, busca na página e suporte a arquivos locais (página inicial padrão em `file:///android_asset/index.html`).
-*   **Grade Visual Configurável:** Ative uma grade visual para entender e direcionar as ações da IA.
-*   **Gerenciamento de Chave de API:** Interface no app para configurar sua chave de API do Google Gemini.
-*   **Log de Interação:** Revise a sequência de prompts do usuário e respostas/ações da IA.
-*   **Modo Tela Cheia:** Oculte os controles para uma visualização imersiva.
+*   **Navegação Autônoma:** Dê comandos em linguagem natural para que a IA navegue, clique, digite e interaja com websites.
+*   **Compreensão Visual:** A IA usa capturas de tela (com e sem grade) para "ver" e entender o conteúdo e layout da página.
+*   **Ações Precisas Baseadas em Grade:** Execute ações (`CLICK`, `TYPE`, `ENTER`) em elementos específicos usando coordenadas da grade (ex: `R5C8`).
+*   **Tarefas Complexas (Multi-Turno):** Realize sequências de ações através de múltiplas interações, com a IA mantendo o contexto via notas internas e checklists (`NOTE ::`).
+*   **Suporte a Múltiplos Modelos (Planejado):** Projetado para integrar diversos modelos multimodais (Qwen, DeepSeek, Llama em breve!).
+*   **Navegador Completo:** Inclui abas múltiplas, modo Desktop/Mobile, downloads, busca na página, etc.
+*   **Grade Visual Configurável:** Ative uma grade para direcionar e entender as ações da IA.
+*   **Gerenciamento de Chave de API:** Interface para configurar suas chaves de API necessárias.
+*   **Log de Interação:** Revise a comunicação completa entre você e o agente de IA.
 
 ## Configuração
 
-1.  **Clone/Baixe:** Obtenha o código do projeto no seu dispositivo.
+1.  **Clone/Baixe:** Obtenha o código do projeto.
     ```bash
     git clone https://github.com/Gabriel-agi/agi-companion-browser.git
     ```
-    (Ou baixe o ZIP do GitHub e extraia).
-2.  **Chave de API:** Obtenha e configure sua chave de API do Google Gemini (instruções abaixo). **As funções de IA não funcionarão sem ela.**
-3.  **Instalação:** Compile o projeto e instale o APK gerado no seu dispositivo Android.
+2.  **Chave de API:** Configure a chave de API para o modelo atualmente suportado (Gemini). Veja instruções abaixo. **Sem a chave, a IA não funciona.**
+3.  **Instalação:** Compile o projeto e instale o APK no seu dispositivo Android.
 
-## Obtendo sua Chave de API Gemini
+## Obtendo sua Chave de API (Exemplo: Gemini)
 
-Este app requer uma chave de API do Google Gemini. O Google oferece um nível gratuito adequado para testes.
+O app atualmente usa Gemini e requer uma chave de API. Processos similares serão necessários para futuros modelos.
 
-1.  Visite o **[Google AI Studio](https://aistudio.google.com/)**.
-2.  Faça login com sua conta Google.
-3.  Clique em "**Get API key**" (Obter chave de API), geralmente na barra lateral esquerda.
-4.  Clique em "**Create API key in new project**" (Criar chave em novo projeto) ou selecione um existente.
-5.  **Copie a chave de API gerada.** Trate-a como uma senha!
-6.  Abra o app AGI Companion Browser.
-7.  Abra o **Menu** (ícone de três pontos).
-8.  Selecione "**API Key Settings**".
-9.  Insira a chave no formato `1,SUA_CHAVE_API` (substitua `SUA_CHAVE_API` pela chave copiada) e toque em "**Save**".
-    *   *(O número `1` é um índice; você pode adicionar mais chaves como `1,keyA,2,keyB`, e o app usará a chave do maior índice).*
+1.  Visite o **[Google AI Studio](https://aistudio.google.com/)** (para Gemini).
+2.  Faça login e clique em "**Get API key**".
+3.  Clique em "**Create API key...**".
+4.  **Copie a chave gerada.**
+5.  No app AGI Companion Browser > **Menu** > **API Key Settings**.
+6.  Insira no formato `1,SUA_CHAVE_API` e toque em "**Save**".
 
 ## Como Usar
 
-1.  Navegue até uma página usando a barra de URL ou abra um arquivo local pelo Menu.
-2.  Toque no ícone **Grade** (parece um teclado numérico) para ativar/desativar a grade visual (útil para entender o alvo da IA).
-3.  Toque no ícone **IA** (avião de papel/enviar) para iniciar uma sequência de interação.
-4.  Digite seu prompt descrevendo a tarefa (ex: "Clique no botão de login", "Ache a barra de busca, digite 'Android AI' e aperte Enter").
-5.  O app captura a tela, envia para a IA Gemini com seu prompt e contexto (abas abertas, etc.).
-6.  A IA responde com comandos (`CLICK R3C4`, `TYPE R5C2 :: meuUsuario`, `NAVIGATE https://...`, `RESPOND Sua resposta final...`), e o app os executa.
-7.  A interação continua turno a turno, capturando novo contexto após cada ação, até a tarefa ser concluída, a IA usar `RESPOND`, ou o limite de turnos ser atingido.
-8.  Toque no ícone **Log** (relógio/histórico) para ver o histórico detalhado da interação atual.
-9.  Use o **Menu** (três pontos) para outras opções (Modo Desktop/Mobile, Chaves de API, Downloads, etc.).
+1.  Navegue até uma página web.
+2.  Toque no ícone **Grade** para ativar/desativar a grade visual.
+3.  Toque no ícone **IA** para iniciar uma interação.
+4.  Digite seu comando (ex: "Clique no botão 'Confirmar'", "Digite 'IA multimodal' na busca R3C5 e aperte Enter").
+5.  O app captura a tela, envia para a IA, que responde com ações.
+6.  A interação continua turno a turno até a tarefa ser concluída.
+7.  Use o ícone **Log** para ver o histórico da interação.
 
 ## Contribuições
 
-Contribuições, issues e sugestões são bem-vindos! Sinta-se à vontade para abrir pull requests ou issues no repositório GitHub.
+Contribuições, issues e sugestões são bem-vindos!
 
 ## Licença
 

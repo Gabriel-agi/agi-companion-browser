@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGI Companion Browser</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #0d9488;
+        --accent: #f97316;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background-color: var(--bg);
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: var(--card);
+        padding: 30px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        position: relative; /* Needed for absolute positioning of config icon */
+    }
+
+    .container:hover {
+        box-shadow: var(--shadow-hover);
+    }
+
+    h1 {
+        text-align: center;
+        color: var(--primary);
+        margin-bottom: 10px;
+        font-weight: 700;
+        font-size: 2.2rem;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        padding-bottom: 12px;
+        padding-right: 40px; /* Make space for config button */
+        padding-left: 40px; /* Balance padding */
+    }
+
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 2px;
+    }
+
+    #configButton {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        background: none;
+        border: none;
+        padding: 5px;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10; /* Ensure it's above other elements */
+    }
+    #configButton:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    #configButton svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--text-light);
+        transition: fill 0.2s ease;
+    }
+    #configButton:hover svg {
+        fill: var(--text);
+    }
+
+    .search-controls {
+        margin-bottom: 30px;
+        margin-top: 15px;
+        position: relative; /* Context for absolute positioned API section */
+    }
+
+     /* API Key Section - Hidden by default, minimal */
+     .api-key-section {
+        position: absolute; /* Position relative to search-controls */
+        top: -55px; /* Position above the search box */
+        right: 0;
+        z-index: 5; /* Below config button but above other controls */
+        background-color: var(--card);
+        padding: 8px;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        /* Visibility handled by opacity/transform */
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+        pointer-events: none; /* Prevent interaction when hidden */
+        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        width: 300px; /* Fixed width */
+        max-width: 80%; /* Max width */
+    }
+     /* Style for when API key section is visible */
+     .api-key-section.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto; /* Allow interaction when visible */
+     }
+
+    #apiKeyInput {
+        width: 100%; /* Full width within its container */
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+        display: block; /* Ensure it takes full width */
+    }
+    #apiKeyInput:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); /* Smaller focus ring */
+    }
+
+    .search-box {
+        display: flex;
+        margin-bottom: 16px;
+        position: relative;
+    }
+
+    #searchInput {
+        flex-grow: 1;
+        padding: 14px 20px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        transition: var(--transition);
+        font-weight: 500;
+        color: var(--text);
+        min-height: 48px;
+    }
+    #searchInput:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    #searchInput::placeholder {
+        color: var(--text-light);
+        font-weight: 400;
+    }
+
+    #searchButton {
+        padding: 0 28px;
+        min-height: 48px;
+        border: none;
+        background-color: var(--primary);
+        color: white;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-weight: 600;
+        transition: var(--transition);
+        margin-left: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    #searchButton:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .search-type {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+    .search-type label {
+        display: flex; align-items: center; cursor: pointer; padding: 8px 16px;
+        border-radius: 20px; transition: var(--transition); font-weight: 500;
+        color: var(--text-light); background-color: rgba(0,0,0,0.02);
+        border: 1px solid var(--border);
+    }
+    .search-type label:hover {
+        background-color: rgba(37, 99, 235, 0.1); color: var(--primary);
+        border-color: rgba(37, 99, 235, 0.3);
+    }
+    .search-type input[type="radio"] {
+        margin-right: 8px; accent-color: var(--primary); transform: scale(1.1);
+    }
+    .search-type input[type="radio"]:checked + span { color: var(--primary); font-weight: 600; }
+    .search-type label:has(input[type="radio"]:checked) {
+        background-color: rgba(37, 99, 235, 0.15); border-color: rgba(37, 99, 235, 0.6);
+    }
+
+    #results {
+        margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;
+        min-height: 200px; position: relative;
+    }
+    .result-item, .news-item, .video-item {
+        margin-bottom: 24px; padding: 15px; padding-bottom: 20px;
+        border-bottom: 1px solid var(--border); transition: var(--transition);
+        border-radius: var(--radius-sm);
+    }
+    .result-item:hover, .news-item:hover, .video-item:hover {
+        transform: translateX(5px); background-color: #f8fafcdd;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .result-item:last-child, .news-item:last-child, .image-item-container:last-child, .video-item:last-child {
+        border-bottom: none; margin-bottom: 0; padding-bottom: 0;
+    }
+    .result-item:last-child, .news-item:last-child, .video-item:last-child { padding-bottom: 15px; }
+    .result-item h3, .news-item h3, .video-item h3 { margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 600; }
+    .result-item h3 a, .news-item h3 a { color: var(--primary); text-decoration: none; transition: var(--transition); cursor: pointer; }
+    .result-item h3 a:hover, .news-item h3 a:hover { color: var(--primary-dark); text-decoration: underline; }
+    .result-item p a, .news-item p a, .video-item a:not(.video-title-link), .image-item-container a {
+        color: var(--primary); text-decoration: none; transition: var(--transition);
+    }
+    .result-item p a:hover, .news-item p a:hover, .video-item a:not(.video-title-link):hover, .image-item-container a:hover {
+        color: var(--primary-dark); text-decoration: underline;
+    }
+    .result-item p, .news-item p, .video-item p { margin: 8px 0 0 0; color: var(--text-light); font-size: 0.95rem; line-height: 1.5; }
+    .news-item .source, .video-item .source { font-size: 0.85rem; color: var(--text-light); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .news-item .date, .video-item .duration { font-size: 0.85rem; color: var(--text-light); display: inline-flex; align-items: center; }
+    .news-item .date::before, .video-item .duration::before { content: "•"; margin: 0 8px; color: var(--border); }
+    .video-item .video-thumbnail { max-width: 180px; height: auto; float: left; margin-right: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); transition: var(--transition); }
+    .video-item .video-thumbnail:hover { transform: scale(1.02); box-shadow: var(--shadow); }
+    .video-item .video-embed iframe { width: 100%; max-width: 560px; height: 315px; border: none; border-radius: var(--radius-sm); margin-bottom: 10px; }
+    .video-details { overflow: hidden; }
+
+    .image-results-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
+    .image-item-container { border: 1px solid var(--border); padding: 8px; border-radius: var(--radius-sm); background-color: var(--card); transition: var(--transition); display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+    .image-item-container:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .image-item-container img { width: 100%; height: 160px; object-fit: cover; display: block; border-radius: var(--radius-sm); cursor: pointer; transition: transform 0.2s ease-in-out; }
+    .image-item-container img:hover { transform: scale(1.03); }
+
+    #pagination { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #pagination button, #pagination span { padding: 8px 14px; border: 1px solid var(--border); background-color: #fff; color: var(--primary); cursor: pointer; border-radius: var(--radius-sm); transition: var(--transition); font-weight: 500; }
+    #pagination button:hover { background-color: rgba(37, 99, 235, 0.1); border-color: var(--primary); }
+    #pagination button:disabled { color: var(--text-light); cursor: not-allowed; background-color: var(--bg); opacity: 0.7; }
+    #pagination span.current-page { background-color: var(--primary); color: white; border-color: var(--primary); cursor: default; font-weight: 700; }
+
+    .loading, .error, .info { text-align: center; padding: 40px; font-size: 1.1rem; margin: 20px; }
+    .info { color: var(--text-light); }
+    .loading { color: var(--text-light); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; }
+    .loading::after { content: ""; display: inline-block; width: 24px; height: 24px; margin-top: 16px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); padding: 20px; border-radius: var(--radius-sm); border-left: 4px solid #ef4444; }
+
+    /* Modal styles */
+    #contentModal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.75); }
+    .modal-content { background-color: var(--card); margin: 3% auto; padding: 0; border: none; width: 90%; height: 90%; max-width: 1400px; border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; border-top-left-radius: var(--radius); border-top-right-radius: var(--radius); flex-shrink: 0; }
+    .modal-title { font-size: 1.1rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 20px; }
+    .close-button { color: var(--text-light); font-size: 32px; font-weight: normal; cursor: pointer; padding: 0 10px; line-height: 1; background: none; border: none; transition: color 0.2s ease; }
+    .close-button:hover, .close-button:focus { color: var(--text); }
+    .modal-body { flex-grow: 1; padding: 5px; overflow: hidden; display: flex; flex-direction: column; background-color: #e2e8f0; }
+    #contentFrame { flex-grow: 1; border: none; width: 100%; height: 100%; display: block; background-color: transparent; }
+    .iframe-warning { font-size: 0.85rem; color: var(--accent); padding: 10px 20px; background-color: rgba(249, 115, 22, 0.1); border-bottom: 1px solid var(--border); display: none; flex-shrink: 0; }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .container { padding: 20px; margin: 20px auto; }
+        h1 { font-size: 1.8rem; padding-right: 50px; padding-left: 10px; text-align: left; }
+        #configButton { top: 15px; right: 15px; }
+        .api-key-section { top: -50px; /* Adjust position */ }
+        .search-box { flex-direction: column; }
+        #searchButton { margin-left: 0; margin-top: 12px; width: 100%; }
+        .video-item .video-thumbnail { float: none; max-width: 100%; margin-right: 0; margin-bottom: 16px; }
+        .video-item .video-embed iframe { height: 250px; }
+        .image-results-container { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+        .modal-content { width: 95%; height: 95%; margin: 2.5% auto; }
+        .modal-header { padding: 12px 15px; }
+        .modal-title { font-size: 1rem; }
+        .iframe-warning { padding: 8px 15px; font-size: 0.8rem; }
+    }
+    @media (max-width: 480px) {
+        body { padding: 5px; }
+        .container { padding: 15px; margin: 10px auto; }
+        h1 { font-size: 1.5rem; padding-right: 45px; padding-left: 5px; margin-bottom: 5px; }
+        h1::after { width: 60px; height: 3px;}
+        #configButton { top: 10px; right: 10px; }
+        #configButton svg { width: 20px; height: 20px; }
+        .api-key-section { width: 250px; max-width: 75%; top: -50px; right: 5px; }
+        .search-controls { margin-bottom: 20px; margin-top: 10px;}
+        #searchInput { padding: 12px 15px; font-size: 0.9rem; min-height: 44px;}
+        #searchButton { padding: 0 20px; font-size: 0.9rem; min-height: 44px;}
+        .search-type { flex-direction: column; align-items: stretch; gap: 8px; }
+        .search-type label { justify-content: flex-start; padding: 8px 12px; }
+        .image-results-container { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        .image-item-container img { height: 120px; }
+        .result-item, .news-item, .video-item { padding: 10px; }
+        .result-item h3, .news-item h3, .video-item h3 { font-size: 1.1rem; }
+        .result-item p, .news-item p, .video-item p { font-size: 0.9rem; }
+        #pagination button, #pagination span { padding: 6px 10px; font-size: 0.9rem;}
+        .modal-content { width: 98%; height: 96%; margin: 1% auto; }
+        .modal-header { padding: 10px; }
+        .modal-title { font-size: 0.95rem; }
+        .close-button { font-size: 28px; }
+        .modal-body { padding: 3px;}
+        .iframe-warning { padding: 6px 10px; font-size: 0.75rem;}
+    }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <button id="configButton" title="Configure API Key" aria-label="Configure API Key">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58 c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81 c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.25C8.66,5.49,8.13,5.81,7.63,6.19L5.24,5.23 C5.02,5.16,4.77,5.23,4.65,5.45L2.73,8.77c-0.11,0.2-0.06,0.47,0.12,0.61l2.03,1.58C4.82,11.36,4.8,11.68,4.8,12 s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96 c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.44c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.44 c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.11-0.2,0.06-0.47-0.12-0.61 L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+        </button>
+        <h1>AGI Companion Browser</h1>
+
+        <div class="search-controls">
+            <div class="api-key-section" id="apiKeySection">
+                <input type="password" id="apiKeyInput" placeholder="Serper API Key">
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Enter search query...">
+                <button id="searchButton">Search</button>
+            </div>
+            <div class="search-type">
+                <label><input type="radio" name="searchType" value="web" checked><span>Web</span></label>
+                <label><input type="radio" name="searchType" value="images"><span>Images</span></label>
+                <label><input type="radio" name="searchType" value="news"><span>News</span></label>
+                <label><input type="radio" name="searchType" value="videos"><span>Videos</span></label>
+            </div>
+        </div>
+
+        <div id="results">
+             <p class="info">Enter a search query to see results.</p>
+        </div>
+
+        <div id="pagination">
+            <!-- Pagination controls -->
+        </div>
+    </div>
+
+     <!-- Modal -->
+    <div id="contentModal">
+        <div class="modal-content">
+             <div class="modal-header">
+                 <span class="modal-title" id="modalTitle">Loading content...</span>
+                 <button class="close-button" id="closeModalButton">×</button>
+             </div>
+             <p class="iframe-warning" id="iframeWarning"><strong>Note:</strong> Site may block loading in frame. Try opening in new tab if blank.</p>
+             <div class="modal-body">
+                 <iframe id="contentFrame" name="contentFrame" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+             </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const BASE_SERPER_URL = 'https://google.serper.dev/';
+        const RESULTS_PER_PAGE = 10;
+        const LOCAL_STORAGE_KEY = 'serperApiKey_v1'; // Use a specific key
+
+        // --- State ---
+        let currentPage = 1;
+        let currentQuery = '';
+        let currentSearchType = 'web';
+        let totalResults = 0;
+
+        // --- DOM Elements ---
+        const configButton = document.getElementById('configButton');
+        const apiKeySection = document.getElementById('apiKeySection');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsContainer = document.getElementById('results');
+        const paginationContainer = document.getElementById('pagination');
+        const searchTypeRadios = document.querySelectorAll('input[name="searchType"]');
+        const contentModal = document.getElementById('contentModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const contentFrame = document.getElementById('contentFrame');
+        const modalTitle = document.getElementById('modalTitle');
+        const iframeWarning = document.getElementById('iframeWarning');
+
+        // --- Functions ---
+
+        /** Gets the selected search type */
+        function getSelectedSearchType() {
+            return document.querySelector('input[name="searchType"]:checked')?.value || 'web';
+        }
+
+        /** Gets the API URL based on search type */
+        function getApiUrl(type) {
+            switch (type) {
+                case 'images': return BASE_SERPER_URL + 'images';
+                case 'news':   return BASE_SERPER_URL + 'news';
+                case 'videos': return BASE_SERPER_URL + 'videos';
+                default:       return BASE_SERPER_URL + 'search';
+            }
+        }
+
+        /** Checks if a URL likely points to an image */
+        function isImageUrl(url) {
+            return url && /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i.test(url);
+        }
+
+        /** Shows the content modal and loads the URL or image */
+        function showInModal(url, title) {
+            modalTitle.textContent = title || "Content Viewer";
+            contentFrame.srcdoc = '';
+            contentFrame.src = 'about:blank';
+            iframeWarning.style.display = 'none'; // Hide warning initially
+
+            if (isImageUrl(url)) {
+                const imageHtml = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background-color:#222;overflow:hidden;}img{display:block;max-width:100%;max-height:100%;object-fit:contain;user-select:none;}</style></head><body><img src="${url.replace(/"/g, '"')}" alt="${(title || 'Image').replace(/"/g, '"')}"></body></html>`;
+                contentFrame.srcdoc = imageHtml;
+            } else {
+                iframeWarning.style.display = 'block';
+                setTimeout(() => { contentFrame.src = url; }, 50);
+            }
+            contentModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        /** Hides the content modal */
+        function closeModal() {
+            contentModal.style.display = 'none';
+            contentFrame.src = 'about:blank';
+            contentFrame.srcdoc = '';
+            modalTitle.textContent = 'Loading content...';
+            document.body.style.overflow = '';
+        }
+
+        /** Clears previous results and pagination */
+        function clearResults() {
+             resultsContainer.innerHTML = '';
+             paginationContainer.innerHTML = '';
+        }
+
+        /** Displays standard web search results */
+        function displayWebResults(data) {
+             if (!data?.organic?.length) { resultsContainer.innerHTML = '<p class="info">No web results found.</p>'; return; }
+            data.organic.forEach(result => {
+                const itemDiv = document.createElement('div'); itemDiv.className = 'result-item';
+                const titleHeader = document.createElement('h3');
+                const titleLink = document.createElement('a');
+                titleLink.textContent = result.title; titleLink.href = "#";
+                titleLink.onclick = (e) => { e.preventDefault(); showInModal(result.link, result.title); };
+                titleHeader.appendChild(titleLink);
+                const snippetPara = document.createElement('p'); snippetPara.innerHTML = result.snippet || '';
+                const displayLinkPara = document.createElement('p');
+                const displayLink = document.createElement('a');
+                displayLink.href = result.link; displayLink.textContent = result.link;
+                displayLink.target = '_blank'; displayLink.rel = 'noopener noreferrer';
+                displayLink.style.cssText = 'font-size: 0.8em; color: #006400; word-break: break-all;';
+                displayLinkPara.appendChild(displayLink);
+                itemDiv.append(titleHeader, snippetPara, displayLinkPara);
+                resultsContainer.appendChild(itemDiv);
+            });
+        }
+
+        /** Displays image search results */
+        function displayImageResults(data) {
+            if (!data?.images?.length) { resultsContainer.innerHTML = '<p class="info">No image results found.</p>'; return; }
+            const imageGrid = document.createElement('div'); imageGrid.className = 'image-results-container';
+            data.images.forEach(result => {
+                const itemDiv = document.createElement('div'); itemDiv.className = 'image-item-container';
+                const img = document.createElement('img');
+                img.src = result.imageUrl; img.alt = result.title || 'Search Result';
+                img.loading = 'lazy'; img.title = `Click to view: ${result.title || 'Image'}`;
+                img.onclick = () => showInModal(result.imageUrl, result.title || 'Image Viewer');
+                itemDiv.appendChild(img);
+                imageGrid.appendChild(itemDiv);
+            });
+            resultsContainer.appendChild(imageGrid);
+        }
+
+        /** Displays news search results */
+        function displayNewsResults(data) {
+             if (!data?.news?.length) { resultsContainer.innerHTML = '<p class="info">No news results found.</p>'; return; }
+            data.news.forEach(result => {
+                const itemDiv = document.createElement('div'); itemDiv.className = 'news-item';
+                const titleHeader = document.createElement('h3');
+                const titleLink = document.createElement('a');
+                titleLink.textContent = result.title; titleLink.href = "#";
+                titleLink.onclick = (e) => { e.preventDefault(); showInModal(result.link, result.title); };
+                titleHeader.appendChild(titleLink);
+                const snippetPara = document.createElement('p'); snippetPara.textContent = result.snippet || '';
+                const sourcePara = document.createElement('p'); sourcePara.className = 'source';
+                sourcePara.textContent = `Source: ${result.source || 'N/A'}`;
+                 if (result.date) {
+                     const dateSpan = document.createElement('span'); dateSpan.className = 'date';
+                     try { dateSpan.textContent = new Date(result.date).toLocaleDateString(); } catch (e) { dateSpan.textContent = result.date; }
+                     sourcePara.appendChild(dateSpan);
+                 }
+                 const sourcePageLink = document.createElement('a');
+                 sourcePageLink.href = result.link; sourcePageLink.textContent = "(Visit Source)";
+                 sourcePageLink.target = '_blank'; sourcePageLink.rel = 'noopener noreferrer';
+                 sourcePageLink.style.cssText = 'margin-left: 8px; font-size: 0.8em;';
+                 sourcePara.appendChild(sourcePageLink);
+                itemDiv.append(titleHeader, snippetPara, sourcePara);
+                resultsContainer.appendChild(itemDiv);
+            });
+        }
+
+        /** Extracts YouTube Video ID */
+        function getYouTubeID(url) {
+            if (!url) return null;
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+         /** Displays video search results */
+        function displayVideoResults(data) {
+            if (!data?.videos?.length) { resultsContainer.innerHTML = '<p class="info">No video results found.</p>'; return; }
+            data.videos.forEach(result => {
+                const itemDiv = document.createElement('div'); itemDiv.className = 'video-item';
+                const videoId = getYouTubeID(result.link);
+                if (videoId) {
+                    const embedDiv = document.createElement('div'); embedDiv.className = 'video-embed';
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                    iframe.allowFullscreen = true; iframe.loading = 'lazy';
+                    embedDiv.appendChild(iframe); itemDiv.appendChild(embedDiv);
+                } else if (result.imageUrl) {
+                    const imgLink = document.createElement('a'); imgLink.href = result.link; imgLink.target = '_blank'; imgLink.rel = 'noopener noreferrer';
+                    const thumbnail = document.createElement('img');
+                    thumbnail.src = result.imageUrl; thumbnail.alt = `Thumbnail: ${result.title}`;
+                    thumbnail.className = 'video-thumbnail'; thumbnail.loading = 'lazy';
+                    imgLink.appendChild(thumbnail); itemDiv.appendChild(imgLink);
+                }
+                const detailsDiv = document.createElement('div'); detailsDiv.className = 'video-details';
+                const titleHeader = document.createElement('h3');
+                const titleLink = document.createElement('a');
+                titleLink.href = result.link; titleLink.textContent = result.title; titleLink.target = '_blank';
+                titleLink.rel = 'noopener noreferrer'; titleLink.className = 'video-title-link';
+                titleHeader.appendChild(titleLink); detailsDiv.appendChild(titleHeader);
+                if (result.snippet) { const p = document.createElement('p'); p.textContent = result.snippet; detailsDiv.appendChild(p); }
+                const sourcePara = document.createElement('p'); sourcePara.className = 'source'; sourcePara.textContent = `Source: ${result.source || 'N/A'}`;
+                if (result.duration) { const s = document.createElement('span'); s.className = 'duration'; s.textContent = `Duration: ${result.duration}`; sourcePara.appendChild(s); }
+                detailsDiv.appendChild(sourcePara); itemDiv.appendChild(detailsDiv);
+                resultsContainer.appendChild(itemDiv);
+            });
+        }
+
+        /** Renders pagination controls */
+        function renderPagination(totalEstimatedResults, resultsPerPage) {
+            paginationContainer.innerHTML = '';
+            if (!totalEstimatedResults || totalEstimatedResults <= resultsPerPage) return;
+            const totalPages = Math.ceil(totalEstimatedResults / resultsPerPage);
+            const maxPagesToShow = 7;
+
+            const createBtn = (p, txt = p, dis = false) => { const b = document.createElement('button'); b.textContent = txt; b.disabled = dis; b.onclick = () => goToPage(p); return b; };
+            const createSpan = (p) => { const s = document.createElement('span'); s.textContent = p; s.className = 'current-page'; return s; };
+            const createEllipsis = () => { const s = document.createElement('span'); s.textContent = '...'; s.style.cssText = 'cursor: default; padding: 8px 5px; border: none; background: none;'; return s; };
+
+            paginationContainer.appendChild(createBtn(currentPage - 1, '« Prev', currentPage === 1));
+             if (totalPages <= maxPagesToShow) { for (let i = 1; i <= totalPages; i++) paginationContainer.appendChild(i === currentPage ? createSpan(i) : createBtn(i)); }
+             else {
+                 let sP = Math.max(2, currentPage - Math.floor((maxPagesToShow - 3) / 2));
+                 let eP = Math.min(totalPages - 1, currentPage + Math.floor((maxPagesToShow - 3) / 2));
+                 const lE = sP > 2; const rE = eP < totalPages - 1;
+                 if (lE && !rE) eP = Math.min(totalPages - 1, 1 + maxPagesToShow - 2);
+                 if (!lE && rE) sP = Math.max(2, totalPages - maxPagesToShow + 2);
+                 paginationContainer.appendChild(createBtn(1));
+                 if (lE) paginationContainer.appendChild(createEllipsis());
+                 for (let i = sP; i <= eP; i++) paginationContainer.appendChild(i === currentPage ? createSpan(i) : createBtn(i));
+                 if (rE) paginationContainer.appendChild(createEllipsis());
+                 paginationContainer.appendChild(createBtn(totalPages));
+             }
+            paginationContainer.appendChild(createBtn(currentPage + 1, 'Next »', currentPage === totalPages));
+        }
+
+         /** Go to a specific page */
+         function goToPage(pageNumber) {
+            if (pageNumber !== currentPage && pageNumber > 0) {
+                currentPage = pageNumber;
+                window.scrollTo(0, resultsContainer.offsetTop - 20);
+                performSearch(currentQuery, currentSearchType, currentPage);
+            }
+         }
+
+        /** Handles the API response */
+        function handleApiResponse(data, searchType) {
+             clearResults();
+             totalResults = data?.searchInformation?.totalResults ?? data?.searchInformation?.estimatedTotalResults ?? 0;
+             const resultsOnPage = data?.organic?.length ?? data?.images?.length ?? data?.news?.length ?? data?.videos?.length ?? 0;
+             if (!totalResults && resultsOnPage > 0) { totalResults = currentPage * RESULTS_PER_PAGE + (resultsOnPage < RESULTS_PER_PAGE ? resultsOnPage - RESULTS_PER_PAGE : 0); }
+
+             switch (searchType) {
+                 case 'images': displayImageResults(data); break;
+                 case 'news': displayNewsResults(data); break;
+                 case 'videos': displayVideoResults(data); break;
+                 default: displayWebResults(data); break;
+             }
+              if (resultsOnPage > 0 || totalResults > RESULTS_PER_PAGE ) { renderPagination(totalResults, RESULTS_PER_PAGE); }
+              else if (!resultsOnPage && resultsContainer.innerHTML === '') { resultsContainer.innerHTML = `<p class="info">No ${searchType} results found.</p>`; }
+        }
+
+        /** Performs the search query using the Serper API */
+        async function performSearch(query, searchType, page = 1) {
+            const apiKey = apiKeyInput.value.trim();
+            if (!query) { clearResults(); resultsContainer.innerHTML = '<p class="info">Please enter a search query.</p>'; return; }
+            if (!apiKey) { clearResults(); resultsContainer.innerHTML = '<p class="error">API Key not set. Click the ⚙️ icon to enter your key.</p>'; return; } // Simple error if key missing
+
+            if (page === 1 && (query !== currentQuery || searchType !== currentSearchType)) {
+                currentQuery = query; currentSearchType = searchType; totalResults = 0;
+            }
+            currentPage = page;
+
+            clearResults();
+            resultsContainer.innerHTML = '<p class="loading">Searching...</p>';
+            const apiUrl = getApiUrl(searchType);
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: query, page: currentPage, num: RESULTS_PER_PAGE })
+                });
+                const responseData = await response.json();
+                if (!response.ok) { throw new Error(`${response.status} ${response.statusText} - ${responseData.message || 'Check API Key'}`); }
+                handleApiResponse(responseData, searchType);
+            } catch (error) {
+                console.error('Search failed:', error);
+                clearResults();
+                // More generic error message
+                resultsContainer.innerHTML = `<p class="error">Search failed. Check API Key (⚙️) or console for details: ${error.message}</p>`;
+                paginationContainer.innerHTML = '';
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Config Button Toggle
+        configButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent click from bubbling to document
+            apiKeySection.classList.toggle('visible');
+            if (apiKeySection.classList.contains('visible')) {
+                apiKeyInput.focus();
+            }
+        });
+
+        // Save API Key on Blur (when focus leaves input)
+        apiKeyInput.addEventListener('blur', () => {
+            localStorage.setItem(LOCAL_STORAGE_KEY, apiKeyInput.value.trim());
+            console.log("API Key saved to localStorage.");
+             // Optional: Hide section after saving? Maybe not, user might want to verify.
+             // apiKeySection.classList.remove('visible');
+        });
+
+        // Hide API key section if clicking outside of it
+         document.addEventListener('click', (e) => {
+            if (apiKeySection.classList.contains('visible') && !apiKeySection.contains(e.target) && e.target !== configButton && !configButton.contains(e.target)) {
+                 apiKeySection.classList.remove('visible');
+            }
+         });
+
+
+        // Search Execution
+        searchButton.addEventListener('click', () => {
+             performSearch(searchInput.value.trim(), getSelectedSearchType(), 1);
+        });
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') searchButton.click();
+        });
+
+         // Search Type Change
+         searchTypeRadios.forEach(radio => {
+             radio.addEventListener('change', () => {
+                 const query = searchInput.value.trim();
+                 if (query) performSearch(query, getSelectedSearchType(), 1);
+                 else currentSearchType = getSelectedSearchType();
+             });
+         });
+
+        // Modal Controls
+        closeModalButton.addEventListener('click', closeModal);
+        contentModal.addEventListener('click', (event) => { if (event.target === contentModal) closeModal(); });
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && contentModal.style.display === 'block') closeModal(); });
+
+         // --- Initialization ---
+         window.addEventListener('DOMContentLoaded', () => {
+            // Load API Key from Local Storage
+            const savedApiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+                console.log("API Key loaded from localStorage.");
+            }
+
+            // Set initial focus
+            searchInput.focus();
+
+            // Update initial placeholder text
+            const initialInfo = document.querySelector('#results .info');
+             if (initialInfo) {
+                 initialInfo.textContent = 'Enter a search query to see results.';
+             }
+         });
+
+    </script>
+
+</body>
+</html>
